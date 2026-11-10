@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FFD-14 – Critères de fraude | Finco Fraud Detection</title>
+<style>
+  :root {
+    --bg: #f4f6f9; --card: #ffffff; --text: #1d2733; --muted: #5f6c7b;
+    --line: #dde3ea; --primary: #1f4e79; --primary-soft: #e6eef6;
+    --low: #1e7b4a; --low-bg: #e3f4ea; --mid: #a15c00; --mid-bg: #fdf0d9;
+    --high: #b3261e; --high-bg: #fbe4e2;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.45; }
+  header { background: var(--primary); color: #fff; padding: 20px 32px; }
+  header h1 { margin: 0 0 4px; font-size: 22px; }
+  header p { margin: 0; opacity: .85; font-size: 14px; }
+  main { max-width: 1180px; margin: 24px auto; padding: 0 20px 40px; display: grid; gap: 20px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; }
+  h2 { margin: 0 0 4px; font-size: 17px; }
+  .hint { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: .03em; padding: 8px 10px; border-bottom: 2px solid var(--line); }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  input[type=number] { width: 96px; padding: 5px 7px; border: 1px solid var(--line); border-radius: 6px; font: inherit; text-align: right; }
+  input[type=number]:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+  input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--primary); }
+  .crit-name { font-weight: 600; }
+  .crit-desc { color: var(--muted); font-size: 13px; }
+  .unit { color: var(--muted); font-size: 12.5px; margin-left: 4px; }
+  tr.off td { opacity: .45; }
+  .levels { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; font-size: 14px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
+  .b-low { background: var(--low-bg); color: var(--low); }
+  .b-mid { background: var(--mid-bg); color: var(--mid); }
+  .b-high { background: var(--high-bg); color: var(--high); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+  .kpi b { display: block; font-size: 22px; }
+  .kpi span { color: var(--muted); font-size: 12.5px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { background: var(--primary-soft); color: var(--primary); border-radius: 5px; padding: 1px 7px; font-size: 12px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  button { font: inherit; padding: 8px 14px; border-radius: 7px; border: 1px solid var(--primary); background: var(--primary); color: #fff; cursor: pointer; }
+  button.secondary { background: #fff; color: var(--primary); }
+  button:hover { filter: brightness(1.08); }
+  .scroll { overflow-x: auto; }
+  footer { text-align: center; color: var(--muted); font-size: 12.5px; padding-bottom: 24px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Définir les critères de fraude</h1>
+  <p>Finco Fraud Detection · Tâche FFD-14 · Epic « Détection des fraudes »</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>1. Critères de détection</h2>
+    <p class="hint">Activez ou désactivez chaque critère, réglez son seuil et son poids. Le score d'une facture est la somme des poids des critères déclenchés.</p>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Actif</th><th>Critère</th><th>Seuil</th><th class="num">Poids</th></tr>
+        </thead>
+        <tbody id="criteres"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Niveaux de risque</h2>
+    <p class="hint">Seuils de score à partir desquels une facture est classée en risque moyen ou élevé.</p>
+    <div class="levels">
+      <span><span class="badge b-low">Faible</span> score inférieur à <b id="lblMoyen"></b></span>
+      <label><span class="badge b-mid">Moyen</span> à partir de <input type="number" id="seuilMoyen" min="1" step="1"></label>
+      <label><span class="badge b-high">Élevé</span> à partir de <input type="number" id="seuilEleve" min="1" step="1"></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Test sur un jeu de factures d'exemple</h2>
+    <p class="hint">Les critères sont appliqués en direct à des données fictives, pour vérifier leur effet avant de les utiliser sur le vrai dataset.</p>
+    <div class="kpis">
+      <div class="kpi"><b id="kTotal">0</b><span>factures analysées</span></div>
+      <div class="kpi"><b id="kEleve" style="color:var(--high)">0</b><span>risque élevé</span></div>
+      <div class="kpi"><b id="kMoyen" style="color:var(--mid)">0</b><span>risque moyen</span></div>
+      <div class="kpi"><b id="kFaible" style="color:var(--low)">0</b><span>risque faible</span></div>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>N° facture</th><th>Fournisseur</th><th>Date</th><th class="num">Montant (TND)</th><th>Critères déclenchés</th><th class="num">Score</th><th>Risque</th></tr>
+        </thead>
+        <tbody id="factures"></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button id="btnExport">Exporter les critères (JSON)</button>
+      <button id="btnReset" class="secondary">Rétablir les valeurs par défaut</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>Finco Fraud Detection · FFD-14 · Données d'exemple fictives</footer>
+
+<script>
+// ---------- Définition des critères (valeurs par défaut) ----------
+const CRITERES_DEFAUT = [
+  { id: "montant_eleve", nom: "Montant élevé", desc: "Le montant dépasse un plafond fixe.", seuil: 20000, unite: "TND", poids: 2, actif: true },
+  { id: "montant_aberrant", nom: "Montant aberrant", desc: "Le montant dépasse la moyenne + k écarts-types du dataset.", seuil: 2, unite: "écarts-types (k)", poids: 3, actif: true },
+  { id: "doublon", nom: "Facture en double", desc: "Même numéro, ou même fournisseur et même montant à quelques jours d'écart.", seuil: 7, unite: "jours d'écart max", poids: 4, actif: true },
+  { id: "sous_seuil", nom: "Juste sous le seuil d'approbation", desc: "Montant situé dans les 5 % sous le seuil de validation hiérarchique.", seuil: 10000, unite: "TND (seuil d'approbation)", poids: 2, actif: true },
+  { id: "montant_rond", nom: "Montant rond", desc: "Montant multiple exact d'une valeur ronde.", seuil: 1000, unite: "TND (multiple)", poids: 1, actif: true },
+  { id: "weekend", nom: "Facture émise le week-end", desc: "Date de facture un samedi ou un dimanche.", seuil: null, unite: "", poids: 1, actif: true },
+  { id: "paiement_anticipe", nom: "Paiement avant la facture", desc: "La date de paiement précède la date de facture.", seuil: null, unite: "", poids: 3, actif: true },
+  { id: "trop_paye", nom: "Paiement supérieur au montant", desc: "Le montant payé dépasse le montant facturé de plus de x %.", seuil: 1, unite: "% de tolérance", poids: 3, actif: true },
+  { id: "nouveau_fournisseur", nom: "Nouveau fournisseur, gros montant", desc: "Première facture d'un fournisseur avec un montant important.", seuil: 5000, unite: "TND", poids: 2, actif: true },
+  { id: "donnees_manquantes", nom: "Données manquantes", desc: "Numéro de facture ou fournisseur absent.", seuil: null, unite: "", poids: 2, actif: true }
+];
+const NIVEAUX_DEFAUT = { moyen: 3, eleve: 6 };
+
+// ---------- Jeu de factures fictives ----------
+const FACTURES = [
+  { numero: "F-2026-001", fournisseur: "Sotupa SARL", date: "2026-10-05", montant: 1840.50, datePaiement: "2026-10-20", montantPaye: 1840.50, nouveau: false },
+  { numero: "F-2026-002", fournisseur: "MedTech Distribution", date: "2026-10-06", montant: 3275.00, datePaiement: "2026-10-28", montantPaye: 3275.00, nouveau: false },
+  { numero: "F-2026-003", fournisseur: "Atlas Logistique", date: "2026-10-08", montant: 9850.00, datePaiement: "2026-10-30", montantPaye: 9850.00, nouveau: false },
+  { numero: "F-2026-004", fournisseur: "Sotupa SARL", date: "2026-10-09", montant: 2410.75, datePaiement: "2026-10-25", montantPaye: 2410.75, nouveau: false },
+  { numero: "F-2026-005", fournisseur: "Carthage Consulting", date: "2026-10-10", montant: 48000.00, datePaiement: "2026-10-12", montantPaye: 48000.00, nouveau: true },
+  { numero: "F-2026-006", fournisseur: "MedTech Distribution", date: "2026-10-12", montant: 4120.30, datePaiement: "2026-11-02", montantPaye: 4120.30, nouveau: false },
+  { numero: "F-2026-007", fournisseur: "Atlas Logistique", date: "2026-10-13", montant: 5600.00, datePaiement: "2026-10-11", montantPaye: 5600.00, nouveau: false },
+  { numero: "F-2026-008", fournisseur: "Bureau Plus", date: "2026-10-17", montant: 6000.00, datePaiement: "2026-10-29", montantPaye: 6000.00, nouveau: true },
+  { numero: "F-2026-009", fournisseur: "MedTech Distribution", date: "2026-10-15", montant: 4120.30, datePaiement: "2026-11-04", montantPaye: 4120.30, nouveau: false },
+  { numero: "F-2026-010", fournisseur: "Sotupa SARL", date: "2026-10-19", montant: 1295.90, datePaiement: "2026-11-05", montantPaye: 1495.90, nouveau: false },
+  { numero: "", fournisseur: "Divers Services", date: "2026-10-21", montant: 730.00, datePaiement: "2026-11-06", montantPaye: 730.00, nouveau: true },
+  { numero: "F-2026-012", fournisseur: "Atlas Logistique", date: "2026-10-22", montant: 2980.40, datePaiement: "2026-11-10", montantPaye: 2980.40, nouveau: false }
+];
+
+// ---------- État (sauvegardé dans le navigateur) ----------
+const CLE = "ffd14_criteres_fraude";
+let etat = charger();
+
+function parDefaut() {
+  return { criteres: JSON.parse(JSON.stringify(CRITERES_DEFAUT)), niveaux: { ...NIVEAUX_DEFAUT } };
+}
+function charger() {
+  try {
+    const brut = localStorage.getItem(CLE);
+    if (brut) {
+      const s = JSON.parse(brut);
+      const base = parDefaut();
+      base.criteres.forEach(c => {
+        const sauve = (s.criteres || []).find(x => x.id === c.id);
+        if (sauve) { c.seuil = sauve.seuil; c.poids = sauve.poids; c.actif = sauve.actif; }
+      });
+      if (s.niveaux) base.niveaux = s.niveaux;
+      return base;
+    }
+  } catch (e) { /* stockage indisponible : on garde les valeurs par défaut */ }
+  return parDefaut();
+}
+function sauver() {
+  try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) { /* ignoré */ }
+}
+
+// ---------- Moteur de règles ----------
+function jours(a, b) { return Math.abs((new Date(a) - new Date(b)) / 86400000); }
+
+function statistiques(factures) {
+  const m = factures.map(f => f.montant);
+  const moyenne = m.reduce((s, x) => s + x, 0) / m.length;
+  const ecart = Math.sqrt(m.reduce((s, x) => s + (x - moyenne) ** 2, 0) / m.length);
+  return { moyenne, ecart };
+}
+
+const REGLES = {
+  montant_eleve: (f, c) => f.montant > c.seuil,
+  montant_aberrant: (f, c, ctx) => f.montant > ctx.stats.moyenne + c.seuil * ctx.stats.ecart,
+  doublon: (f, c, ctx) => ctx.factures.some(g => g !== f && (
+    (f.numero && g.numero === f.numero) ||
+    (g.fournisseur === f.fournisseur && g.montant === f.montant && jours(g.date, f.date) <= c.seuil))),
+  sous_seuil: (f, c) => f.montant < c.seuil && f.montant >= c.seuil * 0.95,
+  montant_rond: (f, c) => c.seuil > 0 && f.montant >= c.seuil && f.montant % c.seuil === 0,
+  weekend: f => [0, 6].includes(new Date(f.date + "T12:00:00").getDay()),
+  paiement_anticipe: f => !!f.datePaiement && new Date(f.datePaiement) < new Date(f.date),
+  trop_paye: (f, c) => f.montantPaye > f.montant * (1 + c.seuil / 100),
+  nouveau_fournisseur: (f, c) => f.nouveau && f.montant > c.seuil,
+  donnees_manquantes: f => !f.numero || !f.fournisseur
+};
+
+function evaluer(factures, criteres) {
+  const ctx = { factures, stats: statistiques(factures) };
+  return factures.map(f => {
+    const declenches = criteres.filter(c => c.actif && REGLES[c.id](f, c, ctx));
+    const score = declenches.reduce((s, c) => s + Number(c.poids || 0), 0);
+    return { facture: f, declenches, score };
+  });
+}
+function niveau(score) {
+  if (score >= etat.niveaux.eleve) return { cle: "high", nom: "Élevé" };
+  if (score >= etat.niveaux.moyen) return { cle: "mid", nom: "Moyen" };
+  return { cle: "low", nom: "Faible" };
+}
+
+// ---------- Affichage ----------
+const fmt = n => n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+
+function afficherCriteres() {
+  const tb = document.getElementById("criteres");
+  tb.innerHTML = etat.criteres.map((c, i) => `
+    <tr class="${c.actif ? "" : "off"}">
+      <td><input type="checkbox" data-i="${i}" data-champ="actif" ${c.actif ? "checked" : ""} aria-label="Activer ${esc(c.nom)}"></td>
+      <td><div class="crit-name">${esc(c.nom)}</div><div class="crit-desc">${esc(c.desc)}</div></td>
+      <td>${c.seuil === null ? '<span class="unit">sans seuil</span>'
+        : `<input type="number" data-i="${i}" data-champ="seuil" value="${c.seuil}" min="0" step="any" aria-label="Seuil ${esc(c.nom)}"><span class="unit">${esc(c.unite)}</span>`}</td>
+      <td class="num"><input type="number" data-i="${i}" data-champ="poids" value="${c.poids}" min="0" max="10" step="1" style="width:64px" aria-label="Poids ${esc(c.nom)}"></td>
+    </tr>`).join("");
+}
+
+function afficherResultats() {
+  const res = evaluer(FACTURES, etat.criteres).sort((a, b) => b.score - a.score);
+  const compte = { high: 0, mid: 0, low: 0 };
+  document.getElementById("factures").innerHTML = res.map(r => {
+    const n = niveau(r.score); compte[n.cle]++;
+    return `<tr>
+      <td style="white-space:nowrap">${r.facture.numero ? esc(r.facture.numero) : "<i>(manquant)</i>"}</td>
+      <td>${esc(r.facture.fournisseur)}</td>
+      <td>${new Date(r.facture.date + "T12:00:00").toLocaleDateString("fr-FR")}</td>
+      <td class="num">${fmt(r.facture.montant)}</td>
+      <td><div class="tags">${r.declenches.map(c => `<span class="tag">${esc(c.nom)}</span>`).join("") || '<span class="unit">aucun</span>'}</div></td>
+      <td class="num"><b>${r.score}</b></td>
+      <td><span class="badge b-${n.cle}">${n.nom}</span></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("kTotal").textContent = res.length;
+  document.getElementById("kEleve").textContent = compte.high;
+  document.getElementById("kMoyen").textContent = compte.mid;
+  document.getElementById("kFaible").textContent = compte.low;
+  document.getElementById("lblMoyen").textContent = etat.niveaux.moyen;
+}
+
+function afficherNiveaux() {
+  document.getElementById("seuilMoyen").value = etat.niveaux.moyen;
+  document.getElementById("seuilEleve").value = etat.niveaux.eleve;
+}
+
+// ---------- Événements ----------
+document.getElementById("criteres").addEventListener("input", e => {
+  const el = e.target, i = el.dataset.i, champ = el.dataset.champ;
+  if (i === undefined) return;
+  if (champ === "actif") {
+    etat.criteres[i].actif = el.checked;
+    el.closest("tr").classList.toggle("off", !el.checked);
+  } else {
+    const v = parseFloat(el.value);
+    etat.criteres[i][champ] = isNaN(v) ? 0 : v;
+  }
+  sauver(); afficherResultats();
+});
+
+["seuilMoyen", "seuilEleve"].forEach(id => {
+  document.getElementById(id).addEventListener("input", e => {
+    const v = parseInt(e.target.value, 10);
+    if (isNaN(v) || v < 1) return;
+    etat.niveaux[id === "seuilMoyen" ? "moyen" : "eleve"] = v;
+    if (etat.niveaux.eleve <= etat.niveaux.moyen) etat.niveaux.eleve = etat.niveaux.moyen + 1;
+    if (id === "seuilMoyen") document.getElementById("seuilEleve").value = etat.niveaux.eleve;
+    sauver(); afficherResultats();
+  });
+});
+
+document.getElementById("btnReset").addEventListener("click", () => {
+  etat = parDefaut(); sauver(); afficherCriteres(); afficherNiveaux(); afficherResultats();
+});
+
+document.getElementById("btnExport").addEventListener("click", () => {
+  const contenu = JSON.stringify({ tache: "FFD-14", projet: "Finco-Fraud-Detection", niveaux: etat.niveaux,
+    criteres: etat.criteres.map(({ id, nom, desc, seuil, unite, poids, actif }) => ({ id, nom, description: desc, seuil, unite, poids, actif })) }, null, 2);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([contenu], { type: "application/json" }));
+  a.download = "criteres-fraude.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+});
+
+afficherCriteres(); afficherNiveaux(); afficherResultats();
+</script>
+</body>
+</html>
