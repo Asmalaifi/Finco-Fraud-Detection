@@ -1,134 +1,43 @@
-742
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Critères de fraude - Finco</title>
+<title>Finco - Fraude</title>
 <style>
-body {
-    font-family: Arial;
-    background: #f2f4f7;
-    padding: 20px;
-}
-h1 {
-    text-align: center;
-    color: #1f4e79;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    margin-bottom: 25px;
-}
-th, td {
-    border: 1px solid #ccc;
-    padding: 12px;
-    text-align: center;
-}
-th {
-    background: #1f4e79;
-    color: white;
-}
-.faible { color: green; font-weight: bold; }
-.moyen { color: orange; font-weight: bold; }
-.eleve { color: red; font-weight: bold; }
+body{font-family:Arial;background:#f2f4f7;padding:20px}
+h1{text-align:center;color:#1f4e79}
+table{width:100%;border-collapse:collapse;background:white;margin-bottom:25px}
+th,td{border:1px solid #ccc;padding:12px;text-align:center}
+th{background:#1f4e79;color:white}
+.faible{color:green;font-weight:bold}
+.moyen{color:orange;font-weight:bold}
+.eleve{color:red;font-weight:bold}
 </style>
 </head>
-
 <body>
 
 <h1>Finco Fraud Detection</h1>
 <h2>Définition des critères de fraude</h2>
 
 <table>
-<tr>
-<th>Critère</th>
-<th>Description</th>
-<th>Risque</th>
-</tr>
-
-<tr>
-<td>Montant élevé</td>
-<td>Facture supérieure à 20 000 TND</td>
-<td class="eleve">Élevé</td>
-</tr>
-
-<tr>
-<td>Facture en double</td>
-<td>Même numéro de facture</td>
-<td class="eleve">Élevé</td>
-</tr>
-
-<tr>
-<td>Fournisseur inconnu</td>
-<td>Nouveau fournisseur</td>
-<td class="moyen">Moyen</td>
-</tr>
-
-<tr>
-<td>Paiement anticipé</td>
-<td>Paiement avant la date de facture</td>
-<td class="eleve">Élevé</td>
-</tr>
-
-<tr>
-<td>Montant inhabituel</td>
-<td>Montant très différent des factures habituelles</td>
-<td class="moyen">Moyen</td>
-</tr>
-
-<tr>
-<td>Données manquantes</td>
-<td>Numéro ou fournisseur absent</td>
-<td class="moyen">Moyen</td>
-</tr>
+<tr><th>Critère</th><th>Description</th><th>Risque</th></tr>
+<tr><td>Montant élevé</td><td>Facture supérieure à 20 000 TND</td><td class="eleve">Élevé</td></tr>
+<tr><td>Facture en double</td><td>Même numéro de facture</td><td class="eleve">Élevé</td></tr>
+<tr><td>Fournisseur inconnu</td><td>Nouveau fournisseur</td><td class="moyen">Moyen</td></tr>
+<tr><td>Paiement anticipé</td><td>Paiement avant la date de facture</td><td class="eleve">Élevé</td></tr>
+<tr><td>Montant inhabituel</td><td>Montant différent des factures habituelles</td><td class="moyen">Moyen</td></tr>
+<tr><td>Données manquantes</td><td>Numéro ou fournisseur absent</td><td class="moyen">Moyen</td></tr>
 </table>
 
 <h2>Exemples de factures analysées</h2>
-
 <table>
-<tr>
-<th>Facture</th>
-<th>Fournisseur</th>
-<th>Montant (TND)</th>
-<th>Problème détecté</th>
-<th>Niveau de risque</th>
-</tr>
-
-<tr>
-<td>F001</td>
-<td>Sotupa</td>
-<td>1 840</td>
-<td>Aucun</td>
-<td class="faible">Faible</td>
-</tr>
-
-<tr>
-<td>F002</td>
-<td>MedTech</td>
-<td>25 000</td>
-<td>Montant élevé</td>
-<td class="eleve">Élevé</td>
-</tr>
-
-<tr>
-<td>F003</td>
-<td>Atlas</td>
-<td>5 600</td>
-<td>Nouveau fournisseur</td>
-<td class="moyen">Moyen</td>
-</tr>
-
-<tr>
-<td>F004</td>
-<td>Sotupa</td>
-<td>3 000</td>
-<td>Facture en double</td>
-<td class="eleve">Élevé</td>
-</tr>
-
+<tr><th>Facture</th><th>Fournisseur</th><th>Montant (TND)</th><th>Problème détecté</th><th>Niveau de risque</th></tr>
+<tr><td>F001</td><td>Sotupa</td><td>1 840</td><td>Aucun</td><td class="faible">Faible</td></tr>
+<tr><td>F002</td><td>MedTech</td><td>25 000</td><td>Montant élevé</td><td class="eleve">Élevé</td></tr>
+<tr><td>F003</td><td>Atlas</td><td>5 600</td><td>Nouveau fournisseur</td><td class="moyen">Moyen</td></tr>
+<tr><td>F004</td><td>Sotupa</td><td>3 000</td><td>Facture en double</td><td class="eleve">Élevé</td></tr>
 </table>
 
 </body>
 </html>
-
